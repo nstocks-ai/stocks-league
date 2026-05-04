@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stocks League — LinkedIn Puzzles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,400;1,9..144,700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+  :root {
+    --bg: #0d1814;
+    --bg-elevated: #122420;
+    --bg-card: #16302a;
+    --line: #1f3a33;
+    --line-soft: #1a3029;
+    --ink: #f4ebd9;
+    --ink-soft: #c9bfa8;
+    --ink-dim: #8a8271;
+    --gold: #d4a547;
+    --gold-bright: #f0c567;
+    --silver: #b8b8a8;
+    --bronze: #b07845;
+    --accent-red: #c05545;
+    --accent-green: #6b9a6f;
+    --crown: #e8b54d;
+    --tango-sun: #dc8a3d;
+    --tango-moon: #8a9db0;
+
+    /* Player colors - carefully chosen for chart */
+    --c-nick: #d4a547;
+    --c-tony: #6ba8c9;
+    --c-dad: #b85a4a;
+    --c-uncle-rick: #9b7fb5;
+    --c-cousin-richard: #6b9a6f;
+    --c-chris: #c98a5c;
+
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-sans: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.55;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 900px 600px at 10% 0%, rgba(212, 165, 71, 0.04), transparent),
+      radial-gradient(ellipse 700px 500px at 90% 20%, rgba(107, 168, 201, 0.03), transparent);
+  }
+
+  /* Subtle paper grain */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    z-index: 1;
+    mix-blend-mode: overlay;
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ========== HEADER ========== */
+  .masthead {
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 20px 0 28px;
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  .masthead-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    padding-bottom: 18px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .masthead-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(48px, 8vw, 88px);
+    line-height: 0.92;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144, "SOFT" 30;
+  }
+  .masthead-title em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--gold);
+    font-variation-settings: "opsz" 144, "SOFT" 80;
+  }
+
+  .masthead-sub {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .masthead-deck {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 19px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+    max-width: 580px;
+  }
+
+  /* Hero stat bar */
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0;
+    margin: 40px 0 56px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .hero-stat {
+    padding: 20px 22px;
+    border-right: 1px solid var(--line-soft);
+  }
+  .hero-stat:last-child { border-right: none; }
+  .hero-stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+  }
+  .hero-stat-value {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .hero-stat-value.accent { color: var(--gold); }
+  .hero-stat-detail {
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin-top: 6px;
+    font-family: var(--font-mono);
+  }
+
+  /* ========== SECTION HEADINGS ========== */
+  .section {
+    margin-bottom: 72px;
+  }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 30px;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .section-title em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--gold);
+  }
+  .section-sub {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  /* ========== MAIN LEAGUE TABLE ========== */
+  .table-wrap {
+    background: var(--bg-elevated);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  thead th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-elevated);
+  }
+  thead th.num { text-align: right; }
+  tbody td {
+    padding: 16px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 15px;
+    color: var(--ink-soft);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(212, 165, 71, 0.04); }
+
+  td.num {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  td.rank {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--ink-dim);
+    width: 56px;
+    font-variant-numeric: tabular-nums;
+  }
+  td.player {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  td.total {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+  }
+
+  /* Rank medals */
+  tr.rank-1 td.rank { color: var(--gold); }
+  tr.rank-1 td.total { color: var(--gold); }
+  tr.rank-1 td.player::before {
+    content: "♛";
+    margin-right: 10px;
+    color: var(--gold);
+    font-size: 18px;
+  }
+  tr.rank-2 td.rank { color: var(--silver); }
+  tr.rank-3 td.rank { color: var(--bronze); }
+
+  /* Big overall table variant */
+  .overall-table tbody td { padding: 20px 16px; }
+
+  /* ========== TWO-COLUMN GRID ========== */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  @media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } }
+
+  .mini-table thead th, .mini-table tbody td {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  .mini-table td.rank { font-size: 17px; width: 40px; }
+  .mini-table td.player { font-size: 15px; }
+  .mini-table td.points {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .sub-table-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sub-table-head .glyph {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .sub-table-head .glyph.queens { color: var(--crown); }
+  .sub-table-head .glyph.tango-sun { color: var(--tango-sun); }
+  .sub-table-head h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  .sub-table-head .note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-left: auto;
+  }
+
+  /* ========== CHART CONTAINER ========== */
+  .chart-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--line);
+    padding: 28px 24px 20px;
+    border-radius: 2px;
+  }
+  .chart-card h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .chart-card .chart-sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-bottom: 20px;
+    letter-spacing: 0.06em;
+  }
+  .chart-canvas-wrap {
+    position: relative;
+    height: 400px;
+  }
+  .chart-canvas-wrap.short {
+    height: 280px;
+  }
+
+  .chart-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 20px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+    width: fit-content;
+  }
+  .chart-tab {
+    background: var(--bg-elevated);
+    color: var(--ink-dim);
+    border: none;
+    padding: 8px 18px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-right: 1px solid var(--line);
+  }
+  .chart-tab:last-child { border-right: none; }
+  .chart-tab:hover { color: var(--ink); }
+  .chart-tab.active {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  /* ========== RECORDS ========== */
+  .records-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .record-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--line);
+    padding: 20px 22px;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .record-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--gold);
+  }
+  .record-card.cool::before { background: var(--c-tony); }
+  .record-card.warm::before { background: var(--c-dad); }
+  .record-card.green::before { background: var(--accent-green); }
+
+  .record-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 10px;
+  }
+  .record-value {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 34px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .record-detail {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  .record-detail .name {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 600;
+    color: var(--gold);
+  }
+  .record-detail .game {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* ========== STATS GRID ========== */
+  .stats-table {
+    background: var(--bg-elevated);
+    border: 1px solid var(--line);
+    overflow-x: auto;
+  }
+  .stats-table table { min-width: 640px; }
+  .stats-table td.player {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .stats-table td.num { font-size: 14px; }
+
+  /* ========== H2H MATRIX ========== */
+  .h2h-wrap {
+    background: var(--bg-elevated);
+    border: 1px solid var(--line);
+    padding: 8px;
+    overflow-x: auto;
+  }
+  .h2h {
+    border-collapse: separate;
+    border-spacing: 3px;
+    width: 100%;
+    min-width: 580px;
+  }
+  .h2h th, .h2h td {
+    text-align: center;
+    padding: 10px 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .h2h th {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    font-weight: 500;
+  }
+  .h2h th.player-col {
+    text-align: right;
+    padding-right: 14px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    font-style: italic;
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .h2h td.self {
+    background: var(--line-soft);
+    color: var(--ink-dim);
+    font-size: 14px;
+  }
+  .h2h td.cell {
+    background: var(--bg-card);
+    border-radius: 2px;
+    position: relative;
+  }
+  .h2h td.win { color: var(--accent-green); font-weight: 500; }
+  .h2h td.loss { color: var(--accent-red); font-weight: 500; }
+  .h2h td.tie { color: var(--ink-dim); }
+  .h2h td.balanced { color: var(--ink); }
+  .h2h .score { font-weight: 700; font-size: 13px; }
+  .h2h .score small { font-weight: 400; opacity: 0.7; margin: 0 2px; }
+
+  /* ========== DAILY BREAKDOWN ========== */
+  .daily-toggle {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    cursor: pointer;
+    padding: 8px 14px;
+    border: 1px solid var(--gold);
+    background: transparent;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .daily-toggle:hover { background: var(--gold); color: var(--bg); }
+
+  .daily-list { display: none; margin-top: 28px; }
+  .daily-list.open { display: block; }
+
+  .day-block {
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .day-block:last-child { border-bottom: none; }
+  .day-header {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+  .day-header .date {
+    color: var(--ink-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    margin-left: 10px;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .day-games {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+  @media (max-width: 680px) { .day-games { grid-template-columns: 1fr; } }
+
+  .day-game {
+    background: var(--bg-elevated);
+    border: 1px solid var(--line);
+    padding: 14px 16px;
+  }
+  .day-game-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .day-game-title .type {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .day-game-title .num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+  .day-row {
+    display: grid;
+    grid-template-columns: 24px 1fr auto auto;
+    gap: 10px;
+    align-items: baseline;
+    padding: 5px 0;
+    font-size: 13.5px;
+  }
+  .day-row .rnk {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--ink-dim);
+    font-size: 14px;
+  }
+  .day-row.first .rnk { color: var(--gold); }
+  .day-row .nm {
+    font-family: var(--font-display);
+    color: var(--ink);
+    font-size: 14.5px;
+  }
+  .day-row .tm {
+    font-family: var(--font-mono);
+    color: var(--ink-soft);
+    font-size: 12.5px;
+  }
+  .day-row .pts {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--gold);
+    min-width: 34px;
+    text-align: right;
+    font-size: 12.5px;
+  }
+
+  /* ========== FOOTER ========== */
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-dim);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 640px) {
+    .wrap { padding: 28px 18px 60px; }
+    .masthead-top { flex-direction: column; align-items: flex-start; gap: 6px; }
+    thead th, tbody td { padding: 12px 10px; font-size: 13px; }
+    td.rank { font-size: 18px; width: 36px; }
+    td.player { font-size: 15px; }
+    td.total { font-size: 18px; }
+    .overall-table tbody td { padding: 14px 10px; }
+    .hero-stat-value { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- MASTHEAD -->
+  <header class="masthead">
+    <div class="masthead-top">
+      <span>Est. 27 Jan 2025 &nbsp;·&nbsp; Six Players &nbsp;·&nbsp; Daily</span>
+      <span id="period-banner"></span>
+    </div>
+    <h1 class="masthead-title">The Stocks <em>League</em></h1>
+    <div class="masthead-edition" id="masthead-edition" style="display:none; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-top: 14px; padding: 4px 10px; border: 1px solid var(--gold); border-radius: 2px; display: inline-block;"></div>
+    <div class="masthead-sub">
+      <p class="masthead-deck">A running tally of the family's LinkedIn Queens &amp; Tango puzzles. Late entries disqualified after 08:00 the following morning.</p>
+    </div>
+  </header>
+
+  <!-- HERO STATS -->
+  <section class="hero-stats" id="hero-stats"></section>
+
+  <!-- OVERALL TABLE -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Overall <em>standings</em></h2>
+      <span class="section-sub">10 / 6 / 4 / 3 / 2 / 1 points per game</span>
+    </div>
+    <div class="table-wrap">
+      <table class="overall-table">
+        <thead>
+          <tr>
+            <th style="width:56px">#</th>
+            <th>Player</th>
+            <th class="num">Queens</th>
+            <th class="num">Tango</th>
+            <th class="num">Played</th>
+            <th class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody id="overall-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TIMELINE CHART -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">The <em>race</em> so far</h2>
+      <span class="section-sub">Cumulative points, day by day</span>
+    </div>
+    <div class="chart-card">
+      <div class="chart-tabs">
+        <button class="chart-tab active" data-view="total">Total</button>
+        <button class="chart-tab" data-view="queens">Queens</button>
+        <button class="chart-tab" data-view="tango">Tango</button>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="cumChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUEENS + TANGO TABLES -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">By <em>game</em></h2>
+      <span class="section-sub">Parallel leagues</span>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="sub-table-head">
+          <span class="glyph queens">♛</span>
+          <h3>Queens</h3>
+          <span class="note">21 games</span>
+        </div>
+        <div class="table-wrap">
+          <table class="mini-table"><thead><tr>
+            <th style="width:40px">#</th><th>Player</th>
+            <th class="num">Played</th><th class="num">Points</th>
+          </tr></thead><tbody id="queens-tbody"></tbody></table>
+        </div>
+      </div>
+      <div>
+        <div class="sub-table-head">
+          <span class="glyph tango-sun">☀</span>
+          <h3>Tango</h3>
+          <span class="note">21 games</span>
+        </div>
+        <div class="table-wrap">
+          <table class="mini-table"><thead><tr>
+            <th style="width:40px">#</th><th>Player</th>
+            <th class="num">Played</th><th class="num">Points</th>
+          </tr></thead><tbody id="tango-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECORDS -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Notable <em>records</em></h2>
+      <span class="section-sub">Opening season highlights</span>
+    </div>
+    <div class="records-grid" id="records-grid"></div>
+  </section>
+
+  <!-- EXTENDED STATS -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Extended <em>statistics</em></h2>
+      <span class="section-sub">Wins · Podiums · Averages · Personal Bests</span>
+    </div>
+    <div class="stats-table">
+      <table>
+        <thead><tr>
+          <th>Player</th>
+          <th class="num">Wins (Q)</th>
+          <th class="num">Wins (T)</th>
+          <th class="num">Podiums</th>
+          <th class="num">Avg Rank (Q)</th>
+          <th class="num">Avg Rank (T)</th>
+          <th class="num">Avg Time (Q)</th>
+          <th class="num">Avg Time (T)</th>
+          <th class="num">PB (Q)</th>
+          <th class="num">PB (T)</th>
+          <th class="num">Best Streak</th>
+        </tr></thead>
+        <tbody id="ext-stats-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- AVG TIME CHART -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Average <em>solve times</em></h2>
+      <span class="section-sub">Lower is better</span>
+    </div>
+    <div class="chart-card">
+      <div class="chart-canvas-wrap short">
+        <canvas id="avgChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- HEAD TO HEAD -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Head to <em>head</em></h2>
+      <span class="section-sub">Wins · Losses · Ties (row vs column)</span>
+    </div>
+    <div class="h2h-wrap">
+      <table class="h2h" id="h2h-table"></table>
+    </div>
+  </section>
+
+  <!-- DAILY BREAKDOWN -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Daily <em>ledger</em></h2>
+      <button class="daily-toggle" id="daily-toggle">Show all days ▾</button>
+    </div>
+    <div class="daily-list" id="daily-list"></div>
+  </section>
+
+  <footer>
+    <span>The Stocks League · Season I · Spring 2026</span>
+    <span id="footer-updated"></span>
+  </footer>
+
+</div>
+
+<script>
+// Dashboard data will be loaded here
+const DATA = {"period": {"start": "01 May 2026", "end": "04 May 2026", "days": 4, "total_games": 8, "label": "May 2026"}, "players": ["Chris", "Cousin Richard", "Dad", "Nick", "Tony", "Uncle Rick"], "player_colors": {"Chris": "#d4a547", "Cousin Richard": "#6ba8c9", "Dad": "#b85a4a", "Nick": "#9b7fb5", "Tony": "#6b9a6f", "Uncle Rick": "#c98a5c"}, "overall_table": [{"player": "Nick", "queens_pts": 32, "tango_pts": 40, "total_pts": 72, "queens_played": 4, "tango_played": 4, "games_played": 8, "rank": 1}, {"player": "Tony", "queens_pts": 32, "tango_pts": 24, "total_pts": 56, "queens_played": 4, "tango_played": 4, "games_played": 8, "rank": 2}, {"player": "Cousin Richard", "queens_pts": 12, "tango_pts": 15, "total_pts": 27, "queens_played": 4, "tango_played": 4, "games_played": 8, "rank": 3}, {"player": "Dad", "queens_pts": 7, "tango_pts": 15, "total_pts": 22, "queens_played": 3, "tango_played": 4, "games_played": 7, "rank": 4}, {"player": "Chris", "queens_pts": 12, "tango_pts": 5, "total_pts": 17, "queens_played": 4, "tango_played": 3, "games_played": 7, "rank": 5}, {"player": "Uncle Rick", "queens_pts": 8, "tango_pts": 8, "total_pts": 16, "queens_played": 4, "tango_played": 4, "games_played": 8, "rank": 6}], "queens_table": [{"rank": 1, "player": "Nick", "points": 32, "played": 4}, {"rank": 2, "player": "Tony", "points": 32, "played": 4}, {"rank": 3, "player": "Chris", "points": 12, "played": 4}, {"rank": 4, "player": "Cousin Richard", "points": 12, "played": 4}, {"rank": 5, "player": "Uncle Rick", "points": 8, "played": 4}, {"rank": 6, "player": "Dad", "points": 7, "played": 3}], "tango_table": [{"rank": 1, "player": "Nick", "points": 40, "played": 4}, {"rank": 2, "player": "Tony", "points": 24, "played": 4}, {"rank": 3, "player": "Cousin Richard", "points": 15, "played": 4}, {"rank": 4, "player": "Dad", "points": 15, "played": 4}, {"rank": 5, "player": "Uncle Rick", "points": 8, "played": 4}, {"rank": 6, "player": "Chris", "points": 5, "played": 3}], "cumulative_timeline": {"dates": ["01 May", "02 May", "03 May", "04 May"], "dates_iso": ["2026-05-01", "2026-05-02", "2026-05-03", "2026-05-04"], "total": {"Chris": [4, 7, 11, 17], "Cousin Richard": [10, 17, 23, 27], "Dad": [4, 13, 15, 22], "Nick": [16, 36, 56, 72], "Tony": [14, 24, 36, 56], "Uncle Rick": [4, 7, 13, 16]}, "queens": {"Chris": [2, 4, 8, 12], "Cousin Richard": [4, 8, 11, 12], "Dad": [1, 4, 4, 7], "Nick": [6, 16, 26, 32], "Tony": [10, 16, 22, 32], "Uncle Rick": [3, 4, 6, 8]}, "tango": {"Chris": [2, 3, 3, 5], "Cousin Richard": [6, 9, 12, 15], "Dad": [3, 9, 11, 15], "Nick": [10, 20, 30, 40], "Tony": [4, 8, 14, 24], "Uncle Rick": [1, 3, 7, 8]}}, "daily_points_breakdown": [{"date": "Fri 01 May", "date_iso": "2026-05-01", "queens": {"game_num": 731, "rows": [{"player": "Tony", "time": "0:20", "time_secs": 20, "flawless": false, "points": 10, "rank": 1}, {"player": "Nick", "time": "0:31", "time_secs": 31, "flawless": false, "points": 6, "rank": 2}, {"player": "Cousin Richard", "time": "0:37", "time_secs": 37, "flawless": false, "points": 4, "rank": 3}, {"player": "Uncle Rick", "time": "1:17", "time_secs": 77, "flawless": false, "points": 3, "rank": 4}, {"player": "Chris", "time": "1:20", "time_secs": 80, "flawless": false, "points": 2, "rank": 5}, {"player": "Dad", "time": "1:25", "time_secs": 85, "flawless": false, "points": 1, "rank": 6}]}, "tango": {"game_num": 571, "rows": [{"player": "Nick", "time": "0:28", "time_secs": 28, "flawless": true, "points": 10, "rank": 1}, {"player": "Cousin Richard", "time": "0:36", "time_secs": 36, "flawless": true, "points": 6, "rank": 2}, {"player": "Tony", "time": "0:50", "time_secs": 50, "flawless": true, "points": 4, "rank": 3}, {"player": "Dad", "time": "0:53", "time_secs": 53, "flawless": true, "points": 3, "rank": 4}, {"player": "Chris", "time": "2:33", "time_secs": 153, "flawless": false, "points": 2, "rank": 5}, {"player": "Uncle Rick", "time": "5:16", "time_secs": 316, "flawless": true, "points": 1, "rank": 6}]}}, {"date": "Sat 02 May", "date_iso": "2026-05-02", "queens": {"game_num": 732, "rows": [{"player": "Nick", "time": "0:32", "time_secs": 32, "flawless": false, "points": 10, "rank": 1}, {"player": "Tony", "time": "0:36", "time_secs": 36, "flawless": false, "points": 6, "rank": 2}, {"player": "Cousin Richard", "time": "1:38", "time_secs": 98, "flawless": false, "points": 4, "rank": 3}, {"player": "Dad", "time": "2:16", "time_secs": 136, "flawless": false, "points": 3, "rank": 4}, {"player": "Chris", "time": "7:21", "time_secs": 441, "flawless": false, "points": 2, "rank": 5}, {"player": "Uncle Rick", "time": "8:53", "time_secs": 533, "flawless": false, "points": 1, "rank": 6}]}, "tango": {"game_num": 572, "rows": [{"player": "Nick", "time": "0:38", "time_secs": 38, "flawless": true, "points": 10, "rank": 1}, {"player": "Dad", "time": "0:42", "time_secs": 42, "flawless": true, "points": 6, "rank": 2}, {"player": "Tony", "time": "0:46", "time_secs": 46, "flawless": true, "points": 4, "rank": 3}, {"player": "Cousin Richard", "time": "1:19", "time_secs": 79, "flawless": true, "points": 3, "rank": 4}, {"player": "Uncle Rick", "time": "1:27", "time_secs": 87, "flawless": true, "points": 2, "rank": 5}, {"player": "Chris", "time": "1:29", "time_secs": 89, "flawless": true, "points": 1, "rank": 6}]}}, {"date": "Sun 03 May", "date_iso": "2026-05-03", "queens": {"game_num": 733, "rows": [{"player": "Nick", "time": "3:04", "time_secs": 184, "flawless": false, "points": 10, "rank": 1}, {"player": "Tony", "time": "4:32", "time_secs": 272, "flawless": false, "points": 6, "rank": 2}, {"player": "Chris", "time": "4:33", "time_secs": 273, "flawless": false, "points": 4, "rank": 3}, {"player": "Cousin Richard", "time": "4:50", "time_secs": 290, "flawless": false, "points": 3, "rank": 4}, {"player": "Uncle Rick", "time": "7:43", "time_secs": 463, "flawless": false, "points": 2, "rank": 5}]}, "tango": {"game_num": 573, "rows": [{"player": "Nick", "time": "0:45", "time_secs": 45, "flawless": false, "points": 10, "rank": 1}, {"player": "Tony", "time": "0:53", "time_secs": 53, "flawless": true, "points": 6, "rank": 2}, {"player": "Uncle Rick", "time": "1:40", "time_secs": 100, "flawless": true, "points": 4, "rank": 3}, {"player": "Cousin Richard", "time": "1:57", "time_secs": 117, "flawless": true, "points": 3, "rank": 4}, {"player": "Dad", "time": "2:06", "time_secs": 126, "flawless": true, "points": 2, "rank": 5}]}}, {"date": "Mon 04 May", "date_iso": "2026-05-04", "queens": {"game_num": 734, "rows": [{"player": "Tony", "time": "0:04", "time_secs": 4, "flawless": false, "points": 10, "rank": 1}, {"player": "Nick", "time": "0:05", "time_secs": 5, "flawless": false, "points": 6, "rank": 2}, {"player": "Chris", "time": "0:06", "time_secs": 6, "flawless": false, "points": 4, "rank": 3}, {"player": "Dad", "time": "0:08", "time_secs": 8, "flawless": false, "points": 3, "rank": 4}, {"player": "Uncle Rick", "time": "0:09", "time_secs": 9, "flawless": false, "points": 2, "rank": 5}, {"player": "Cousin Richard", "time": "0:21", "time_secs": 21, "flawless": false, "points": 1, "rank": 6}]}, "tango": {"game_num": 574, "rows": [{"player": "Nick", "time": "0:22", "time_secs": 22, "flawless": false, "points": 10, "rank": 1}, {"player": "Tony", "time": "0:22", "time_secs": 22, "flawless": true, "points": 10, "rank": 1}, {"player": "Dad", "time": "0:28", "time_secs": 28, "flawless": false, "points": 4, "rank": 3}, {"player": "Cousin Richard", "time": "0:32", "time_secs": 32, "flawless": true, "points": 3, "rank": 4}, {"player": "Chris", "time": "0:52", "time_secs": 52, "flawless": true, "points": 2, "rank": 5}, {"player": "Uncle Rick", "time": "0:58", "time_secs": 58, "flawless": true, "points": 1, "rank": 6}]}}], "h2h": {"Chris": {"Cousin Richard": {"wins": 2, "losses": 5, "ties": 0}, "Dad": {"wins": 2, "losses": 4, "ties": 0}, "Nick": {"wins": 0, "losses": 7, "ties": 0}, "Tony": {"wins": 0, "losses": 7, "ties": 0}, "Uncle Rick": {"wins": 5, "losses": 2, "ties": 0}}, "Cousin Richard": {"Chris": {"wins": 5, "losses": 2, "ties": 0}, "Dad": {"wins": 4, "losses": 3, "ties": 0}, "Nick": {"wins": 0, "losses": 8, "ties": 0}, "Tony": {"wins": 1, "losses": 7, "ties": 0}, "Uncle Rick": {"wins": 6, "losses": 2, "ties": 0}}, "Dad": {"Chris": {"wins": 4, "losses": 2, "ties": 0}, "Cousin Richard": {"wins": 3, "losses": 4, "ties": 0}, "Nick": {"wins": 0, "losses": 7, "ties": 0}, "Tony": {"wins": 1, "losses": 6, "ties": 0}, "Uncle Rick": {"wins": 5, "losses": 2, "ties": 0}}, "Nick": {"Chris": {"wins": 7, "losses": 0, "ties": 0}, "Cousin Richard": {"wins": 8, "losses": 0, "ties": 0}, "Dad": {"wins": 7, "losses": 0, "ties": 0}, "Tony": {"wins": 5, "losses": 2, "ties": 1}, "Uncle Rick": {"wins": 8, "losses": 0, "ties": 0}}, "Tony": {"Chris": {"wins": 7, "losses": 0, "ties": 0}, "Cousin Richard": {"wins": 7, "losses": 1, "ties": 0}, "Dad": {"wins": 6, "losses": 1, "ties": 0}, "Nick": {"wins": 2, "losses": 5, "ties": 1}, "Uncle Rick": {"wins": 8, "losses": 0, "ties": 0}}, "Uncle Rick": {"Chris": {"wins": 2, "losses": 5, "ties": 0}, "Cousin Richard": {"wins": 2, "losses": 6, "ties": 0}, "Dad": {"wins": 2, "losses": 5, "ties": 0}, "Nick": {"wins": 0, "losses": 8, "ties": 0}, "Tony": {"wins": 0, "losses": 8, "ties": 0}}}, "records": {"fastest_queens": {"player": "Tony", "time": "0:04", "game": "Queens #734"}, "fastest_tango": {"player": "Nick", "time": "0:22", "game": "Tango #574"}, "slowest_queens": {"player": "Uncle Rick", "time": "8:53", "game": "Queens #732"}, "slowest_tango": {"player": "Uncle Rick", "time": "5:16", "game": "Tango #571"}, "biggest_margin": {"winner": "Nick", "runner_up": "Tony", "game": "Queens #733", "winner_time": "3:04", "runner_up_time": "4:32", "margin": "1:28"}}, "wins": {"Chris": {"queens": 0, "tango": 0, "total": 0}, "Cousin Richard": {"queens": 0, "tango": 0, "total": 0}, "Dad": {"queens": 0, "tango": 0, "total": 0}, "Nick": {"queens": 2, "tango": 4, "total": 6}, "Tony": {"queens": 2, "tango": 1, "total": 3}, "Uncle Rick": {"queens": 0, "tango": 0, "total": 0}}, "podiums": {"Chris": {"queens": 2, "tango": 0, "total": 2}, "Cousin Richard": {"queens": 2, "tango": 1, "total": 3}, "Dad": {"queens": 0, "tango": 2, "total": 2}, "Nick": {"queens": 4, "tango": 4, "total": 8}, "Tony": {"queens": 4, "tango": 4, "total": 8}, "Uncle Rick": {"queens": 0, "tango": 1, "total": 1}}, "pb_times": {"Chris": {"queens": "0:06", "tango": "0:52", "queens_secs": 6, "tango_secs": 52}, "Cousin Richard": {"queens": "0:21", "tango": "0:32", "queens_secs": 21, "tango_secs": 32}, "Dad": {"queens": "0:08", "tango": "0:28", "queens_secs": 8, "tango_secs": 28}, "Nick": {"queens": "0:05", "tango": "0:22", "queens_secs": 5, "tango_secs": 22}, "Tony": {"queens": "0:04", "tango": "0:22", "queens_secs": 4, "tango_secs": 22}, "Uncle Rick": {"queens": "0:09", "tango": "0:58", "queens_secs": 9, "tango_secs": 58}}, "avg_times": {"Chris": {"queens": "3:20", "tango": "1:38", "queens_secs": 200.0, "tango_secs": 98.0}, "Cousin Richard": {"queens": "1:52", "tango": "1:06", "queens_secs": 111.5, "tango_secs": 66.0}, "Dad": {"queens": "1:16", "tango": "1:02", "queens_secs": 76.33333333333333, "tango_secs": 62.25}, "Nick": {"queens": "1:03", "tango": "0:33", "queens_secs": 63.0, "tango_secs": 33.25}, "Tony": {"queens": "1:23", "tango": "0:43", "queens_secs": 83.0, "tango_secs": 42.75}, "Uncle Rick": {"queens": "4:30", "tango": "2:20", "queens_secs": 270.5, "tango_secs": 140.25}}, "avg_ranks": {"Chris": {"queens": 4.0, "tango": 5.33}, "Cousin Richard": {"queens": 4.0, "tango": 3.5}, "Dad": {"queens": 4.67, "tango": 3.5}, "Nick": {"queens": 1.5, "tango": 1.0}, "Tony": {"queens": 1.5, "tango": 2.25}, "Uncle Rick": {"queens": 5.0, "tango": 5.0}}, "participation": {"Chris": {"queens": 4, "tango": 3, "total_days": 4}, "Cousin Richard": {"queens": 4, "tango": 4, "total_days": 4}, "Dad": {"queens": 3, "tango": 4, "total_days": 4}, "Nick": {"queens": 4, "tango": 4, "total_days": 4}, "Tony": {"queens": 4, "tango": 4, "total_days": 4}, "Uncle Rick": {"queens": 4, "tango": 4, "total_days": 4}}, "streaks": {"Chris": {"queens_max": 0, "tango_max": 0, "any_max": 0}, "Cousin Richard": {"queens_max": 0, "tango_max": 0, "any_max": 0}, "Dad": {"queens_max": 0, "tango_max": 0, "any_max": 0}, "Nick": {"queens_max": 2, "tango_max": 4, "any_max": 4}, "Tony": {"queens_max": 1, "tango_max": 1, "any_max": 1}, "Uncle Rick": {"queens_max": 0, "tango_max": 0, "any_max": 0}}};
+const PLAYER_COLORS = DATA.player_colors || {};
+
+// ===== Masthead =====
+document.getElementById('period-banner').textContent =
+  `${DATA.period.label ? DATA.period.label + '  ·  ' : ''}${DATA.period.start} – ${DATA.period.end}  ·  Day ${DATA.period.days}`;
+
+// Show the edition label badge if present (e.g. "All-Time" or "May 2026")
+if (DATA.period.label) {
+  const editionEl = document.getElementById('masthead-edition');
+  editionEl.textContent = DATA.period.label + ' Edition';
+  editionEl.style.display = 'inline-block';
+  // Reflect the edition in the browser tab title too
+  document.title = `Stocks League — ${DATA.period.label}`;
+}
+
+// ===== Hero stats =====
+(function renderHero() {
+  const leader = DATA.overall_table[0];
+  const second = DATA.overall_table[1];
+  const gap = leader.total_pts - second.total_pts;
+  const totalGames = DATA.daily_points_breakdown.reduce((s, d) =>
+    s + (d.queens ? 1 : 0) + (d.tango ? 1 : 0), 0);
+  const mostParticipated = DATA.overall_table.slice().sort((a, b) =>
+    b.games_played - a.games_played)[0];
+
+  // Find most wins
+  let mostWins = {name: '', count: 0};
+  Object.entries(DATA.wins).forEach(([name, w]) => {
+    if (w.total > mostWins.count) { mostWins = {name, count: w.total}; }
+  });
+
+  const items = [
+    { label: 'Current Leader', value: leader.player, detail: `${leader.total_pts} pts`, accent: true },
+    { label: 'Gap to 2nd', value: `+${gap}`, detail: `${second.player} on ${second.total_pts}` },
+    { label: 'Games Played', value: totalGames, detail: `across ${DATA.period.days} days` },
+    { label: 'Most Wins', value: `${mostWins.count}`, detail: `${mostWins.name} · 1st places` },
+    { label: 'Perfect Attendance', value: mostParticipated.player, detail: `${mostParticipated.games_played}/${totalGames} games` },
+  ];
+
+  document.getElementById('hero-stats').innerHTML = items.map(s => `
+    <div class="hero-stat">
+      <div class="hero-stat-label">${s.label}</div>
+      <div class="hero-stat-value ${s.accent ? 'accent' : ''}">${s.value}</div>
+      <div class="hero-stat-detail">${s.detail}</div>
+    </div>
+  `).join('');
+})();
+
+// ===== Overall table =====
+(function renderOverall() {
+  document.getElementById('overall-tbody').innerHTML = DATA.overall_table.map(row => `
+    <tr class="rank-${row.rank}">
+      <td class="rank">${row.rank}</td>
+      <td class="player">${row.player}</td>
+      <td class="num">${row.queens_pts}</td>
+      <td class="num">${row.tango_pts}</td>
+      <td class="num" style="color: var(--ink-dim)">${row.games_played}</td>
+      <td class="num total">${row.total_pts}</td>
+    </tr>
+  `).join('');
+})();
+
+// ===== Queens/Tango tables =====
+(function renderSubTables() {
+  const qRows = DATA.queens_table.map(r => `
+    <tr class="rank-${r.rank}"><td class="rank">${r.rank}</td><td class="player">${r.player}</td>
+    <td class="num" style="color:var(--ink-dim)">${r.played}</td><td class="num points">${r.points}</td></tr>`).join('');
+  const tRows = DATA.tango_table.map(r => `
+    <tr class="rank-${r.rank}"><td class="rank">${r.rank}</td><td class="player">${r.player}</td>
+    <td class="num" style="color:var(--ink-dim)">${r.played}</td><td class="num points">${r.points}</td></tr>`).join('');
+  document.getElementById('queens-tbody').innerHTML = qRows;
+  document.getElementById('tango-tbody').innerHTML = tRows;
+})();
+
+// ===== Cumulative chart =====
+let cumChart;
+function buildCumChart(view) {
+  const ctx = document.getElementById('cumChart').getContext('2d');
+  const dataset = DATA.cumulative_timeline[view];
+  const labels = DATA.cumulative_timeline.dates;
+
+  // Sort players by final value (highest first for legend order)
+  const sortedPlayers = Object.keys(dataset).sort((a, b) =>
+    dataset[b][dataset[b].length-1] - dataset[a][dataset[a].length-1]);
+
+  const datasets = sortedPlayers.map(p => ({
+    label: p,
+    data: dataset[p],
+    borderColor: PLAYER_COLORS[p],
+    backgroundColor: PLAYER_COLORS[p] + '18',
+    borderWidth: 2.25,
+    tension: 0.25,
+    pointRadius: 0,
+    pointHoverRadius: 5,
+    pointBackgroundColor: PLAYER_COLORS[p],
+    pointBorderColor: '#0d1814',
+    pointBorderWidth: 2,
+  }));
+
+  if (cumChart) cumChart.destroy();
+  cumChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top',
+          align: 'end',
+          labels: {
+            font: { family: 'DM Sans', size: 12, weight: '500' },
+            color: '#c9bfa8',
+            usePointStyle: true,
+            pointStyle: 'line',
+            boxWidth: 24,
+            padding: 18,
+          }
+        },
+        tooltip: {
+          backgroundColor: '#0d1814',
+          borderColor: '#1f3a33',
+          borderWidth: 1,
+          titleFont: { family: 'Fraunces', size: 13, weight: '600' },
+          titleColor: '#f4ebd9',
+          bodyFont: { family: 'JetBrains Mono', size: 12 },
+          bodyColor: '#c9bfa8',
+          padding: 12,
+          cornerRadius: 2,
+          displayColors: true,
+          boxPadding: 4,
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#8a8271',
+            font: { family: 'JetBrains Mono', size: 10 },
+            maxRotation: 0,
+            autoSkipPadding: 15,
+          },
+          grid: { color: '#1a3029', drawBorder: false },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: '#8a8271',
+            font: { family: 'JetBrains Mono', size: 10 },
+          },
+          grid: { color: '#1a3029', drawBorder: false },
+          title: {
+            display: true,
+            text: 'CUMULATIVE POINTS',
+            color: '#8a8271',
+            font: { family: 'JetBrains Mono', size: 10, weight: '500' },
+          }
+        }
+      }
+    }
+  });
+}
+buildCumChart('total');
+
+document.querySelectorAll('.chart-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    buildCumChart(btn.dataset.view);
+  });
+});
+
+// ===== Records =====
+(function renderRecords() {
+  const r = DATA.records;
+  // Find longest streak
+  let longestStreak = {name: '', days: 0, type: 'overall'};
+  Object.entries(DATA.streaks).forEach(([name, s]) => {
+    if (s.any_max > longestStreak.days) {
+      longestStreak = {name, days: s.any_max};
+    }
+  });
+
+  // Find most podiums
+  let podiumKing = {name: '', total: 0};
+  Object.entries(DATA.podiums).forEach(([name, p]) => {
+    if (p.total > podiumKing.total) podiumKing = {name, total: p.total};
+  });
+
+  const cards = [
+    { label: 'Fastest Queens', value: r.fastest_queens.time, cls: '',
+      detail: `<span class="name">${r.fastest_queens.player}</span><span class="game">${r.fastest_queens.game}</span>` },
+    { label: 'Fastest Tango', value: r.fastest_tango.time, cls: 'cool',
+      detail: `<span class="name">${r.fastest_tango.player}</span><span class="game">${r.fastest_tango.game}</span>` },
+    { label: 'Biggest Margin of Victory', value: r.biggest_margin.margin, cls: 'green',
+      detail: `<span class="name">${r.biggest_margin.winner}</span> beat ${r.biggest_margin.runner_up}<span class="game">${r.biggest_margin.game} · ${r.biggest_margin.winner_time} vs ${r.biggest_margin.runner_up_time}</span>` },
+    { label: 'Longest Win Streak', value: `${longestStreak.days} days`, cls: '',
+      detail: `<span class="name">${longestStreak.name}</span><span class="game">Consecutive daily 1st places</span>` },
+    { label: 'Slowest Solve', value: r.slowest_queens.time, cls: 'warm',
+      detail: `<span class="name">${r.slowest_queens.player}</span><span class="game">${r.slowest_queens.game} · a proper grind</span>` },
+    { label: 'Most Podium Finishes', value: podiumKing.total, cls: 'cool',
+      detail: `<span class="name">${podiumKing.name}</span><span class="game">Top-3 finishes across both games</span>` },
+  ];
+
+  document.getElementById('records-grid').innerHTML = cards.map(c => `
+    <div class="record-card ${c.cls}">
+      <div class="record-label">${c.label}</div>
+      <div class="record-value">${c.value}</div>
+      <div class="record-detail">${c.detail}</div>
+    </div>
+  `).join('');
+})();
+
+// ===== Extended stats =====
+(function renderExtStats() {
+  const playerOrder = DATA.overall_table.map(r => r.player);
+  const rows = playerOrder.map(p => {
+    const w = DATA.wins[p], pod = DATA.podiums[p];
+    const pb = DATA.pb_times[p], avg = DATA.avg_times[p];
+    const ar = DATA.avg_ranks[p];
+    const streak = DATA.streaks[p].any_max;
+    return `<tr>
+      <td class="player">${p}</td>
+      <td class="num">${w.queens}</td>
+      <td class="num">${w.tango}</td>
+      <td class="num">${pod.total}</td>
+      <td class="num">${ar.queens !== null ? ar.queens.toFixed(2) : '—'}</td>
+      <td class="num">${ar.tango !== null ? ar.tango.toFixed(2) : '—'}</td>
+      <td class="num">${avg.queens}</td>
+      <td class="num">${avg.tango}</td>
+      <td class="num" style="color:var(--gold)">${pb.queens}</td>
+      <td class="num" style="color:var(--gold)">${pb.tango}</td>
+      <td class="num">${streak > 0 ? streak + ' d' : '—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('ext-stats-tbody').innerHTML = rows;
+})();
+
+// ===== Avg time chart =====
+(function renderAvgChart() {
+  const ctx = document.getElementById('avgChart').getContext('2d');
+  const players = DATA.overall_table.map(r => r.player);
+  const qData = players.map(p => DATA.avg_times[p].queens_secs || 0);
+  const tData = players.map(p => DATA.avg_times[p].tango_secs || 0);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: players,
+      datasets: [
+        { label: 'Queens', data: qData, backgroundColor: '#d4a547cc', borderColor: '#d4a547', borderWidth: 0, borderRadius: 2 },
+        { label: 'Tango', data: tData, backgroundColor: '#dc8a3dcc', borderColor: '#dc8a3d', borderWidth: 0, borderRadius: 2 },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top', align: 'end',
+          labels: { font: { family: 'DM Sans', size: 12, weight: '500' }, color: '#c9bfa8',
+            usePointStyle: true, boxWidth: 12, padding: 16 }
+        },
+        tooltip: {
+          backgroundColor: '#0d1814', borderColor: '#1f3a33', borderWidth: 1,
+          titleFont: { family: 'Fraunces', size: 13, weight: '600' }, titleColor: '#f4ebd9',
+          bodyFont: { family: 'JetBrains Mono', size: 12 }, bodyColor: '#c9bfa8',
+          padding: 12, cornerRadius: 2,
+          callbacks: {
+            label: function(c) {
+              const s = c.raw;
+              const m = Math.floor(s/60), sec = Math.round(s%60);
+              return `${c.dataset.label}: ${m}:${sec.toString().padStart(2,'0')}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#c9bfa8', font: { family: 'DM Sans', size: 12 } }, grid: { display: false } },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: '#8a8271', font: { family: 'JetBrains Mono', size: 10 },
+            callback: function(v) { const m = Math.floor(v/60), s = v%60; return `${m}:${s.toString().padStart(2,'0')}`; }
+          },
+          grid: { color: '#1a3029' },
+          title: { display: true, text: 'AVG SOLVE TIME', color: '#8a8271', font: { family: 'JetBrains Mono', size: 10, weight: '500' } }
+        }
+      }
+    }
+  });
+})();
+
+// ===== H2H =====
+(function renderH2H() {
+  const playerOrder = DATA.overall_table.map(r => r.player);
+  let html = '<thead><tr><th class="player-col"></th>';
+  playerOrder.forEach(p => { html += `<th>${p.split(' ')[0]}</th>`; });
+  html += '</tr></thead><tbody>';
+  playerOrder.forEach(a => {
+    html += `<tr><th class="player-col">${a}</th>`;
+    playerOrder.forEach(b => {
+      if (a === b) {
+        html += '<td class="self">—</td>';
+      } else {
+        const rec = DATA.h2h[a][b];
+        const net = rec.wins - rec.losses;
+        let cls = 'cell balanced';
+        if (net > 0) cls = 'cell win';
+        else if (net < 0) cls = 'cell loss';
+        html += `<td class="${cls}"><div class="score">${rec.wins}<small>–</small>${rec.losses}${rec.ties > 0 ? `<small>(${rec.ties}t)</small>` : ''}</div></td>`;
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('h2h-table').innerHTML = html;
+})();
+
+// ===== Daily ledger =====
+(function renderDaily() {
+  const html = DATA.daily_points_breakdown.slice().reverse().map(d => {
+    const renderGame = (g, type, emoji, emojiClass) => {
+      if (!g) return '<div class="day-game" style="opacity:0.4"><div class="day-game-title"><span class="type">No ' + type + '</span></div></div>';
+      const rows = g.rows.map(r => `
+        <div class="day-row ${r.rank === 1 ? 'first' : ''}">
+          <span class="rnk">${r.rank}</span>
+          <span class="nm">${r.player}</span>
+          <span class="tm">${r.time}</span>
+          <span class="pts">+${r.points}</span>
+        </div>`).join('');
+      return `<div class="day-game">
+        <div class="day-game-title">
+          <span style="color: var(--${emojiClass});">${emoji}</span>
+          <span class="type">${type}</span>
+          <span class="num">#${g.game_num}</span>
+        </div>
+        ${rows}
+      </div>`;
+    };
+    return `<div class="day-block">
+      <div class="day-header">${d.date} <span class="date">${d.date_iso}</span></div>
+      <div class="day-games">
+        ${renderGame(d.queens, 'Queens', '♛', 'crown')}
+        ${renderGame(d.tango, 'Tango', '☀', 'tango-sun')}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('daily-list').innerHTML = html;
+
+  const toggle = document.getElementById('daily-toggle');
+  const list = document.getElementById('daily-list');
+  toggle.addEventListener('click', () => {
+    const open = list.classList.toggle('open');
+    toggle.textContent = open ? 'Hide all days ▴' : 'Show all days ▾';
+  });
+})();
+
+document.getElementById('footer-updated').textContent = `Generated ${new Date().toLocaleString('en-GB', {day:'2-digit', month:'short', year:'numeric'})}`;
+
+</script>
+</body>
+</html>
