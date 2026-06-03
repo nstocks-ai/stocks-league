@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stocks League — Monthly Trends</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,400&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1814;
+    --bg-elevated: #122420;
+    --bg-card: #16302a;
+    --line: #1f3a33;
+    --line-soft: #1a3029;
+    --ink: #f4ebd9;
+    --ink-soft: #c9bfa8;
+    --ink-dim: #8a8271;
+    --gold: #d4a547;
+    --gold-bright: #f0c567;
+    --silver: #b8b8a8;
+    --bronze: #b07845;
+    --accent-red: #c05545;
+    --accent-green: #6b9a6f;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-sans: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.55;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 900px 600px at 10% 0%, rgba(212, 165, 71, 0.04), transparent),
+      radial-gradient(ellipse 700px 500px at 90% 20%, rgba(107, 168, 201, 0.03), transparent);
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.03; z-index: 1; mix-blend-mode: overlay;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 48px 32px 80px; position: relative; z-index: 2; }
+
+  .masthead {
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 20px 0 28px;
+    margin-bottom: 48px;
+  }
+  .masthead-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-dim);
+    padding-bottom: 18px; margin-bottom: 20px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .masthead-title {
+    font-family: var(--font-display); font-weight: 800;
+    font-size: clamp(40px, 7vw, 76px); line-height: 0.96;
+    letter-spacing: -0.025em; color: var(--ink);
+  }
+  .masthead-title em { font-style: italic; font-weight: 500; color: var(--gold); }
+  .masthead-sub {
+    margin-top: 14px; font-family: var(--font-display);
+    font-size: 18px; color: var(--ink-soft); font-style: italic;
+  }
+
+  .nav-tabs {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 36px;
+  }
+  .nav-tabs a {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-dim);
+    padding: 8px 14px; border: 1px solid var(--line);
+    border-radius: 3px; text-decoration: none;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .nav-tabs a:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .nav-tabs a.active {
+    color: var(--bg); background: var(--gold); border-color: var(--gold);
+    font-weight: 600;
+  }
+
+  section { margin-bottom: 56px; }
+  h2 {
+    font-family: var(--font-display); font-weight: 600;
+    font-size: 28px; letter-spacing: -0.01em;
+    margin-bottom: 6px; color: var(--ink);
+  }
+  .section-sub {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-dim);
+    margin-bottom: 22px;
+  }
+
+  /* KPI strip */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .kpi {
+    background: var(--bg-card); border: 1px solid var(--line);
+    border-radius: 4px; padding: 18px 20px;
+  }
+  .kpi-label {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-dim); margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-family: var(--font-display); font-weight: 600; font-size: 28px;
+    color: var(--ink); line-height: 1.1;
+  }
+  .kpi-extra { margin-top: 6px; color: var(--ink-soft); font-size: 13px; }
+
+  /* Podium grid */
+  .podium-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;
+  }
+  .podium-card {
+    background: var(--bg-card); border: 1px solid var(--line);
+    border-radius: 4px; padding: 18px 20px;
+  }
+  .podium-card.partial { border-style: dashed; }
+  .podium-month {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-dim);
+    margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .podium-month .pill {
+    font-size: 9px; padding: 2px 6px; border: 1px solid var(--ink-dim);
+    border-radius: 2px; letter-spacing: 0.1em;
+  }
+  .podium-rank {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 6px 0; border-bottom: 1px solid var(--line-soft);
+  }
+  .podium-rank:last-child { border-bottom: none; }
+  .podium-pos {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-dim);
+    width: 24px;
+  }
+  .podium-pos.first { color: var(--gold); font-weight: 700; }
+  .podium-pos.second { color: var(--silver); }
+  .podium-pos.third { color: var(--bronze); }
+  .podium-name { flex: 1; color: var(--ink); }
+  .podium-pts { font-family: var(--font-mono); color: var(--ink-soft); font-size: 13px; }
+
+  /* Monthly tables */
+  .month-block { margin-bottom: 32px; }
+  .month-block h3 {
+    font-family: var(--font-display); font-weight: 600; font-size: 20px;
+    color: var(--ink); display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px;
+  }
+  .month-block .month-meta {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-dim); margin-bottom: 14px;
+  }
+  .partial-tag {
+    background: var(--accent-red); color: var(--ink);
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em;
+    text-transform: uppercase; padding: 2px 6px; border-radius: 2px;
+  }
+  table.standings {
+    width: 100%; border-collapse: collapse;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 4px;
+    overflow: hidden;
+  }
+  table.standings th, table.standings td {
+    padding: 10px 14px; text-align: left;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 14px;
+  }
+  table.standings th {
+    background: var(--bg-elevated); color: var(--ink-dim);
+    font-family: var(--font-mono); font-weight: 600;
+    text-transform: uppercase; font-size: 10px; letter-spacing: 0.14em;
+  }
+  table.standings tr:last-child td { border-bottom: none; }
+  table.standings td.num { text-align: right; font-family: var(--font-mono); }
+  table.standings td.name { font-weight: 500; }
+  table.standings .swatch {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 8px; vertical-align: middle;
+  }
+  table.standings tr.rank-1 td.name { color: var(--gold); font-weight: 600; }
+  table.standings tr.rank-2 td.name { color: var(--silver); }
+  table.standings tr.rank-3 td.name { color: var(--bronze); }
+
+  .chart-card {
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 4px;
+    padding: 22px; margin-bottom: 16px;
+  }
+  .chart-card .chart-title {
+    font-family: var(--font-display); font-weight: 600; font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .chart-card .chart-sub {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-dim); margin-bottom: 18px;
+  }
+  .chart-wrap { position: relative; height: 360px; }
+  .chart-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  @media (max-width: 800px) { .chart-grid { grid-template-columns: 1fr; } }
+
+  .pb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .pb-card {
+    background: var(--bg-card); border: 1px solid var(--line);
+    border-radius: 4px; padding: 16px 18px;
+  }
+  .pb-card .pb-player { font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .pb-card .pb-line {
+    font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft);
+  }
+
+  footer {
+    margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--line);
+    color: var(--ink-dim); font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="masthead-top">
+      <span>Stocks League · LinkedIn Puzzles</span>
+      <span id="masthead-right"></span>
+    </div>
+    <h1 class="masthead-title">Monthly <em>Trends</em></h1>
+    <div class="masthead-sub" id="subtitle"></div>
+  </div>
+
+  <div class="nav-tabs">
+    <a href="monthly.html">This Month</a>
+    <a href="overall.html">All-Time</a>
+    <a href="trends.html" class="active">Monthly Trends</a>
+  </div>
+
+  <section id="kpis-section">
+    <h2>At a glance</h2>
+    <div class="section-sub">Storylines from the season so far</div>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section>
+    <h2>Monthly podiums</h2>
+    <div class="section-sub">Top three each month — dashed border = month in progress</div>
+    <div class="podium-grid" id="podium-grid"></div>
+  </section>
+
+  <section>
+    <h2>Points per month</h2>
+    <div class="section-sub">Raw monthly totals — see who's peaking and who's coasting</div>
+    <div class="chart-card">
+      <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cumulative race</h2>
+    <div class="section-sub">Where the all-time totals stood at the end of each month</div>
+    <div class="chart-card">
+      <div class="chart-wrap"><canvas id="chart-cumulative"></canvas></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Rank evolution</h2>
+    <div class="section-sub">Finishing position per month (1 = monthly champion)</div>
+    <div class="chart-card">
+      <div class="chart-wrap"><canvas id="chart-rank"></canvas></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Form (points per game played)</h2>
+    <div class="section-sub">Normalised for partial months and skipped days</div>
+    <div class="chart-card">
+      <div class="chart-wrap"><canvas id="chart-ppg"></canvas></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Queens vs Tango — by month</h2>
+    <div class="section-sub">Which game each player has been stronger at, month by month</div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Queens</div>
+        <div class="chart-sub">Points earned in Queens each month</div>
+        <div class="chart-wrap"><canvas id="chart-queens"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Tango</div>
+        <div class="chart-sub">Points earned in Tango each month</div>
+        <div class="chart-wrap"><canvas id="chart-tango"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Monthly standings</h2>
+    <div class="section-sub">Full leaderboards for every month</div>
+    <div id="monthly-tables"></div>
+  </section>
+
+  <section>
+    <h2>Personal bests</h2>
+    <div class="section-sub">Best single-month points haul, per player</div>
+    <div class="pb-grid" id="pb-grid"></div>
+  </section>
+
+  <footer>
+    <span id="footer-left"></span>
+    <span id="footer-right">Generated automatically · refresh daily</span>
+  </footer>
+
+</div>
+
+<script id="data" type="application/json">{"generated_at": "2026-06-03 07:59 UTC", "league_start": "28 Mar 2026", "players": ["Chris", "Cousin Richard", "Dad", "Nick", "Tony", "Uncle Rick"], "player_colors": {"Chris": "#d4a547", "Cousin Richard": "#6ba8c9", "Dad": "#b85a4a", "Nick": "#9b7fb5", "Tony": "#6b9a6f", "Uncle Rick": "#c98a5c"}, "month_labels": ["Mar 2026", "Apr 2026", "May 2026", "Jun 2026"], "monthly_tables": [{"ym": [2026, 3], "label": "Mar 2026", "year": 2026, "month": 3, "days": 4, "queens_games": 4, "tango_games": 4, "total_games": 8, "partial": true, "rows": [{"player": "Nick", "queens_pts": 32, "tango_pts": 28, "total_pts": 60, "queens_played": 4, "tango_played": 4, "games_played": 8, "wins_queens": 2, "wins_tango": 1, "rank": 1, "gap": 0, "ppg": 7.5, "gap_to_second": 0}, {"player": "Tony", "queens_pts": 32, "tango_pts": 28, "total_pts": 60, "queens_played": 4, "tango_played": 4, "games_played": 8, "wins_queens": 2, "wins_tango": 2, "rank": 2, "gap": 0, "ppg": 7.5}, {"player": "Dad", "queens_pts": 9, "tango_pts": 23, "total_pts": 32, "queens_played": 3, "tango_played": 4, "games_played": 7, "wins_queens": 0, "wins_tango": 1, "rank": 3, "gap": 28, "ppg": 4.57}, {"player": "Cousin Richard", "queens_pts": 11, "tango_pts": 12, "total_pts": 23, "queens_played": 4, "tango_played": 4, "games_played": 8, "wins_queens": 0, "wins_tango": 0, "rank": 4, "gap": 37, "ppg": 2.88}, {"player": "Uncle Rick", "queens_pts": 11, "tango_pts": 9, "total_pts": 20, "queens_played": 4, "tango_played": 4, "games_played": 8, "wins_queens": 0, "wins_tango": 0, "rank": 5, "gap": 40, "ppg": 2.5}, {"player": "Chris", "queens_pts": 7, "tango_pts": 1, "total_pts": 8, "queens_played": 3, "tango_played": 1, "games_played": 4, "wins_queens": 0, "wins_tango": 0, "rank": 6, "gap": 52, "ppg": 2.0}]}, {"ym": [2026, 4], "label": "Apr 2026", "year": 2026, "month": 4, "days": 30, "queens_games": 30, "tango_games": 30, "total_games": 60, "partial": false, "rows": [{"player": "Tony", "queens_pts": 245, "tango_pts": 224, "total_pts": 469, "queens_played": 30, "tango_played": 30, "games_played": 60, "wins_queens": 18, "wins_tango": 12, "rank": 1, "gap": 0, "ppg": 7.82, "gap_to_second": 18}, {"player": "Nick", "queens_pts": 210, "tango_pts": 241, "total_pts": 451, "queens_played": 30, "tango_played": 30, "games_played": 60, "wins_queens": 11, "wins_tango": 17, "rank": 2, "gap": 18, "ppg": 7.52}, {"player": "Cousin Richard", "queens_pts": 121, "tango_pts": 116, "total_pts": 237, "queens_played": 30, "tango_played": 30, "games_played": 60, "wins_queens": 1, "wins_tango": 1, "rank": 3, "gap": 232, "ppg": 3.95}, {"player": "Dad", "queens_pts": 71, "tango_pts": 92, "total_pts": 163, "queens_played": 23, "tango_played": 26, "games_played": 49, "wins_queens": 0, "wins_tango": 0, "rank": 4, "gap": 306, "ppg": 3.33}, {"player": "Uncle Rick", "queens_pts": 65, "tango_pts": 58, "total_pts": 123, "queens_played": 29, "tango_played": 28, "games_played": 57, "wins_queens": 0, "wins_tango": 0, "rank": 5, "gap": 346, "ppg": 2.16}, {"player": "Chris", "queens_pts": 50, "tango_pts": 37, "total_pts": 87, "queens_played": 21, "tango_played": 22, "games_played": 43, "wins_queens": 0, "wins_tango": 0, "rank": 6, "gap": 382, "ppg": 2.02}]}, {"ym": [2026, 5], "label": "May 2026", "year": 2026, "month": 5, "days": 31, "queens_games": 31, "tango_games": 31, "total_games": 62, "partial": false, "rows": [{"player": "Nick", "queens_pts": 201, "tango_pts": 257, "total_pts": 458, "queens_played": 31, "tango_played": 31, "games_played": 62, "wins_queens": 11, "wins_tango": 20, "rank": 1, "gap": 0, "ppg": 7.39, "gap_to_second": 17}, {"player": "Tony", "queens_pts": 242, "tango_pts": 199, "total_pts": 441, "queens_played": 31, "tango_played": 31, "games_played": 62, "wins_queens": 17, "wins_tango": 10, "rank": 2, "gap": 17, "ppg": 7.11}, {"player": "Cousin Richard", "queens_pts": 133, "tango_pts": 150, "total_pts": 283, "queens_played": 31, "tango_played": 31, "games_played": 62, "wins_queens": 2, "wins_tango": 4, "rank": 3, "gap": 175, "ppg": 4.56}, {"player": "Dad", "queens_pts": 86, "tango_pts": 101, "total_pts": 187, "queens_played": 28, "tango_played": 30, "games_played": 58, "wins_queens": 0, "wins_tango": 0, "rank": 4, "gap": 271, "ppg": 3.22}, {"player": "Chris", "queens_pts": 78, "tango_pts": 55, "total_pts": 133, "queens_played": 29, "tango_played": 28, "games_played": 57, "wins_queens": 2, "wins_tango": 0, "rank": 5, "gap": 325, "ppg": 2.33}, {"player": "Uncle Rick", "queens_pts": 73, "tango_pts": 56, "total_pts": 129, "queens_played": 31, "tango_played": 31, "games_played": 62, "wins_queens": 1, "wins_tango": 0, "rank": 6, "gap": 329, "ppg": 2.08}]}, {"ym": [2026, 6], "label": "Jun 2026", "year": 2026, "month": 6, "days": 3, "queens_games": 2, "tango_games": 2, "total_games": 4, "partial": true, "rows": [{"player": "Tony", "queens_pts": 20, "tango_pts": 14, "total_pts": 34, "queens_played": 2, "tango_played": 2, "games_played": 4, "wins_queens": 2, "wins_tango": 1, "rank": 1, "gap": 0, "ppg": 8.5, "gap_to_second": 9}, {"player": "Nick", "queens_pts": 9, "tango_pts": 16, "total_pts": 25, "queens_played": 2, "tango_played": 2, "games_played": 4, "wins_queens": 0, "wins_tango": 1, "rank": 2, "gap": 9, "ppg": 6.25}, {"player": "Cousin Richard", "queens_pts": 8, "tango_pts": 10, "total_pts": 18, "queens_played": 2, "tango_played": 2, "games_played": 4, "wins_queens": 0, "wins_tango": 0, "rank": 3, "gap": 16, "ppg": 4.5}, {"player": "Chris", "queens_pts": 8, "tango_pts": 4, "total_pts": 12, "queens_played": 2, "tango_played": 2, "games_played": 4, "wins_queens": 0, "wins_tango": 0, "rank": 4, "gap": 22, "ppg": 3.0}, {"player": "Dad", "queens_pts": 5, "tango_pts": 6, "total_pts": 11, "queens_played": 2, "tango_played": 2, "games_played": 4, "wins_queens": 0, "wins_tango": 0, "rank": 5, "gap": 23, "ppg": 2.75}, {"player": "Uncle Rick", "queens_pts": 3, "tango_pts": 2, "total_pts": 5, "queens_played": 2, "tango_played": 2, "games_played": 4, "wins_queens": 0, "wins_tango": 0, "rank": 6, "gap": 29, "ppg": 1.25}]}], "monthly_podium": [{"label": "Mar 2026", "partial": true, "first": {"player": "Nick", "queens_pts": 32, "tango_pts": 28, "total_pts": 60, "queens_played": 4, "tango_played": 4, "games_played": 8, "wins_queens": 2, "wins_tango": 1, "rank": 1, "gap": 0, "ppg": 7.5, "gap_to_second": 0}, "second": {"player": "Tony", "queens_pts": 32, "tango_pts": 28, "total_pts": 60, "queens_played": 4, "tango_played": 4, "games_played": 8, "wins_queens": 2, "wins_tango": 2, "rank": 2, "gap": 0, "ppg": 7.5}, "third": {"player": "Dad", "queens_pts": 9, "tango_pts": 23, "total_pts": 32, "queens_played": 3, "tango_played": 4, "games_played": 7, "wins_queens": 0, "wins_tango": 1, "rank": 3, "gap": 28, "ppg": 4.57}}, {"label": "Apr 2026", "partial": false, "first": {"player": "Tony", "queens_pts": 245, "tango_pts": 224, "total_pts": 469, "queens_played": 30, "tango_played": 30, "games_played": 60, "wins_queens": 18, "wins_tango": 12, "rank": 1, "gap": 0, "ppg": 7.82, "gap_to_second": 18}, "second": {"player": "Nick", "queens_pts": 210, "tango_pts": 241, "total_pts": 451, "queens_played": 30, "tango_played": 30, "games_played": 60, "wins_queens": 11, "wins_tango": 17, "rank": 2, "gap": 18, "ppg": 7.52}, "third": {"player": "Cousin Richard", "queens_pts": 121, "tango_pts": 116, "total_pts": 237, "queens_played": 30, "tango_played": 30, "games_played": 60, "wins_queens": 1, "wins_tango": 1, "rank": 3, "gap": 232, "ppg": 3.95}}, {"label": "May 2026", "partial": false, "first": {"player": "Nick", "queens_pts": 201, "tango_pts": 257, "total_pts": 458, "queens_played": 31, "tango_played": 31, "games_played": 62, "wins_queens": 11, "wins_tango": 20, "rank": 1, "gap": 0, "ppg": 7.39, "gap_to_second": 17}, "second": {"player": "Tony", "queens_pts": 242, "tango_pts": 199, "total_pts": 441, "queens_played": 31, "tango_played": 31, "games_played": 62, "wins_queens": 17, "wins_tango": 10, "rank": 2, "gap": 17, "ppg": 7.11}, "third": {"player": "Cousin Richard", "queens_pts": 133, "tango_pts": 150, "total_pts": 283, "queens_played": 31, "tango_played": 31, "games_played": 62, "wins_queens": 2, "wins_tango": 4, "rank": 3, "gap": 175, "ppg": 4.56}}, {"label": "Jun 2026", "partial": true, "first": {"player": "Tony", "queens_pts": 20, "tango_pts": 14, "total_pts": 34, "queens_played": 2, "tango_played": 2, "games_played": 4, "wins_queens": 2, "wins_tango": 1, "rank": 1, "gap": 0, "ppg": 8.5, "gap_to_second": 9}, "second": {"player": "Nick", "queens_pts": 9, "tango_pts": 16, "total_pts": 25, "queens_played": 2, "tango_played": 2, "games_played": 4, "wins_queens": 0, "wins_tango": 1, "rank": 2, "gap": 9, "ppg": 6.25}, "third": {"player": "Cousin Richard", "queens_pts": 8, "tango_pts": 10, "total_pts": 18, "queens_played": 2, "tango_played": 2, "games_played": 4, "wins_queens": 0, "wins_tango": 0, "rank": 3, "gap": 16, "ppg": 4.5}}], "series_total": {"Chris": [8, 87, 133, 12], "Cousin Richard": [23, 237, 283, 18], "Dad": [32, 163, 187, 11], "Nick": [60, 451, 458, 25], "Tony": [60, 469, 441, 34], "Uncle Rick": [20, 123, 129, 5]}, "series_queens": {"Chris": [7, 50, 78, 8], "Cousin Richard": [11, 121, 133, 8], "Dad": [9, 71, 86, 5], "Nick": [32, 210, 201, 9], "Tony": [32, 245, 242, 20], "Uncle Rick": [11, 65, 73, 3]}, "series_tango": {"Chris": [1, 37, 55, 4], "Cousin Richard": [12, 116, 150, 10], "Dad": [23, 92, 101, 6], "Nick": [28, 241, 257, 16], "Tony": [28, 224, 199, 14], "Uncle Rick": [9, 58, 56, 2]}, "series_rank": {"Chris": [6, 6, 5, 4], "Cousin Richard": [4, 3, 3, 3], "Dad": [3, 4, 4, 5], "Nick": [1, 2, 1, 2], "Tony": [2, 1, 2, 1], "Uncle Rick": [5, 5, 6, 6]}, "series_ppg": {"Chris": [2.0, 2.02, 2.33, 3.0], "Cousin Richard": [2.88, 3.95, 4.56, 4.5], "Dad": [4.57, 3.33, 3.22, 2.75], "Nick": [7.5, 7.52, 7.39, 6.25], "Tony": [7.5, 7.82, 7.11, 8.5], "Uncle Rick": [2.5, 2.16, 2.08, 1.25]}, "cumulative_total": {"Chris": [8, 95, 228, 240], "Cousin Richard": [23, 260, 543, 561], "Dad": [32, 195, 382, 393], "Nick": [60, 511, 969, 994], "Tony": [60, 529, 970, 1004], "Uncle Rick": [20, 143, 272, 277]}, "personal_bests": {"Chris": {"month": "May 2026", "points": 133}, "Cousin Richard": {"month": "May 2026", "points": 283}, "Dad": {"month": "May 2026", "points": 187}, "Nick": {"month": "May 2026", "points": 458}, "Tony": {"month": "Apr 2026", "points": 469}, "Uncle Rick": {"month": "May 2026", "points": 129}}, "biggest_jump": {"player": "Tony", "from_month": "Mar 2026", "to_month": "Apr 2026", "from_points": 60, "to_points": 469, "delta": 409}, "biggest_drop": {"player": "Nick", "from_month": "May 2026", "to_month": "Jun 2026", "from_points": 458, "to_points": 25, "delta": -433}, "today": "03 Jun 2026"}</script>
+<script>
+  const DATA = JSON.parse(document.getElementById('data').textContent);
+  const PLAYERS = DATA.players;
+  const COLORS = DATA.player_colors;
+
+  // Masthead / subtitle
+  document.getElementById('masthead-right').textContent =
+    'League start ' + DATA.league_start + ' · Updated ' + DATA.generated_at;
+  document.getElementById('subtitle').textContent =
+    'How the ' + PLAYERS.length + ' players have trended month over month — ' +
+    DATA.month_labels.length + ' months of data through ' + DATA.today + '.';
+  document.getElementById('footer-left').textContent =
+    'Stocks League · Monthly Trends · ' + DATA.generated_at;
+
+  // KPIs
+  const completed = DATA.monthly_tables.filter(m => !m.partial);
+  const lastCompleted = completed[completed.length - 1];
+  const currentMonth = DATA.monthly_tables[DATA.monthly_tables.length - 1];
+  const kpis = [];
+  if (lastCompleted) {
+    const row = lastCompleted.rows[0];
+    const row2 = lastCompleted.rows[1];
+    kpis.push({
+      label: 'Latest monthly champion',
+      value: row.player,
+      extra: lastCompleted.label + ' · ' + row.total_pts + ' pts (+' + row.gap_to_second + ' over ' + row2.player + ')',
+      gap_to_second: row.total_pts - row2.total_pts,
+    });
+  }
+  if (currentMonth && currentMonth.partial) {
+    const row = currentMonth.rows[0];
+    const row2 = currentMonth.rows[1];
+    kpis.push({
+      label: 'This month so far',
+      value: row.player + ' leading',
+      extra: currentMonth.label + ' · ' + row.total_pts + ' pts (' +
+             (row.total_pts - row2.total_pts) + ' clear) · ' + currentMonth.days + ' days in',
+    });
+  }
+  if (DATA.biggest_jump && DATA.biggest_jump.delta > 0) {
+    kpis.push({
+      label: 'Biggest month-over-month jump',
+      value: DATA.biggest_jump.player + ' (+' + DATA.biggest_jump.delta + ')',
+      extra: DATA.biggest_jump.from_month + ' → ' + DATA.biggest_jump.to_month +
+             ' · ' + DATA.biggest_jump.from_points + ' → ' + DATA.biggest_jump.to_points,
+    });
+  }
+  if (DATA.biggest_drop && DATA.biggest_drop.delta < 0) {
+    kpis.push({
+      label: 'Biggest drop-off',
+      value: DATA.biggest_drop.player + ' (' + DATA.biggest_drop.delta + ')',
+      extra: DATA.biggest_drop.from_month + ' → ' + DATA.biggest_drop.to_month +
+             ' · ' + DATA.biggest_drop.from_points + ' → ' + DATA.biggest_drop.to_points,
+    });
+  }
+  // Months tracked KPI
+  kpis.push({
+    label: 'Months tracked',
+    value: DATA.month_labels.length,
+    extra: DATA.month_labels.join(' · '),
+  });
+
+  document.getElementById('kpis').innerHTML = kpis.map(k => `
+    <div class="kpi">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-extra">${k.extra || ''}</div>
+    </div>
+  `).join('');
+
+  // Podiums
+  document.getElementById('podium-grid').innerHTML = DATA.monthly_podium.map(m => {
+    const renderRow = (r, posClass, posLabel) => r ? `
+      <div class="podium-rank">
+        <span class="podium-pos ${posClass}">${posLabel}</span>
+        <span class="podium-name">${r.player}</span>
+        <span class="podium-pts">${r.total_pts} pts</span>
+      </div>
+    ` : '';
+    return `
+      <div class="podium-card${m.partial ? ' partial' : ''}">
+        <div class="podium-month">
+          <span>${m.label}</span>
+          ${m.partial ? '<span class="pill">In progress</span>' : ''}
+        </div>
+        ${renderRow(m.first, 'first', '1st')}
+        ${renderRow(m.second, 'second', '2nd')}
+        ${renderRow(m.third, 'third', '3rd')}
+      </div>
+    `;
+  }).join('');
+
+  // Common chart options
+  Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+  Chart.defaults.color = '#c9bfa8';
+  const grid = { color: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.12)' };
+
+  function lineDatasets(series, hidden=false) {
+    return PLAYERS.map(p => ({
+      label: p,
+      data: series[p],
+      borderColor: COLORS[p],
+      backgroundColor: COLORS[p] + '20',
+      borderWidth: 2.5,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      tension: 0.25,
+      hidden,
+      spanGaps: true,
+    }));
+  }
+
+  const baseOpts = (yLabel, opts={}) => ({
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 14, boxWidth: 12, font: { size: 12 } } },
+      tooltip: {
+        backgroundColor: '#16302a', borderColor: '#1f3a33', borderWidth: 1,
+        titleColor: '#f4ebd9', bodyColor: '#c9bfa8',
+      },
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#8a8271' } },
+      y: { grid, ticks: { color: '#8a8271' }, title: { display: !!yLabel, text: yLabel || '' }, ...opts.yScale },
+    },
+  });
+
+  new Chart(document.getElementById('chart-monthly'), {
+    type: 'line',
+    data: { labels: DATA.month_labels, datasets: lineDatasets(DATA.series_total) },
+    options: baseOpts('Points'),
+  });
+
+  new Chart(document.getElementById('chart-cumulative'), {
+    type: 'line',
+    data: { labels: DATA.month_labels, datasets: lineDatasets(DATA.cumulative_total) },
+    options: baseOpts('Cumulative points'),
+  });
+
+  new Chart(document.getElementById('chart-rank'), {
+    type: 'line',
+    data: { labels: DATA.month_labels, datasets: lineDatasets(DATA.series_rank) },
+    options: baseOpts('Finishing position', {
+      yScale: { reverse: true, min: 1, max: PLAYERS.length, ticks: { stepSize: 1, color: '#8a8271' } },
+    }),
+  });
+
+  new Chart(document.getElementById('chart-ppg'), {
+    type: 'line',
+    data: { labels: DATA.month_labels, datasets: lineDatasets(DATA.series_ppg) },
+    options: baseOpts('Points per game played'),
+  });
+
+  new Chart(document.getElementById('chart-queens'), {
+    type: 'line',
+    data: { labels: DATA.month_labels, datasets: lineDatasets(DATA.series_queens) },
+    options: baseOpts('Queens points'),
+  });
+
+  new Chart(document.getElementById('chart-tango'), {
+    type: 'line',
+    data: { labels: DATA.month_labels, datasets: lineDatasets(DATA.series_tango) },
+    options: baseOpts('Tango points'),
+  });
+
+  // Monthly tables
+  document.getElementById('monthly-tables').innerHTML = DATA.monthly_tables.slice().reverse().map(m => {
+    const rows = m.rows.map(r => `
+      <tr class="rank-${r.rank}">
+        <td class="num">${r.rank}</td>
+        <td class="name"><span class="swatch" style="background:${COLORS[r.player]}"></span>${r.player}</td>
+        <td class="num">${r.queens_pts}</td>
+        <td class="num">${r.tango_pts}</td>
+        <td class="num">${r.total_pts}</td>
+        <td class="num">${r.gap ? '−' + r.gap : '—'}</td>
+        <td class="num">${r.games_played}/${m.total_games}</td>
+        <td class="num">${r.ppg ?? '—'}</td>
+      </tr>
+    `).join('');
+    return `
+      <div class="month-block">
+        <h3>${m.label}${m.partial ? ' <span class="partial-tag">In progress</span>' : ''}</h3>
+        <div class="month-meta">${m.days} day${m.days !== 1 ? 's' : ''} · ${m.queens_games} Queens · ${m.tango_games} Tango · ${m.total_games} games</div>
+        <table class="standings">
+          <thead><tr>
+            <th>#</th><th>Player</th><th>Queens</th><th>Tango</th><th>Total</th>
+            <th>Gap</th><th>Played</th><th>Pts/Game</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  }).join('');
+
+  // Personal bests
+  document.getElementById('pb-grid').innerHTML = PLAYERS.map(p => {
+    const pb = DATA.personal_bests[p];
+    return `
+      <div class="pb-card">
+        <div class="pb-player"><span class="swatch" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COLORS[p]};margin-right:8px;vertical-align:middle"></span>${p}</div>
+        <div class="pb-line">${pb.points} pts in ${pb.month}</div>
+      </div>
+    `;
+  }).join('');
+
+</script>
+</body>
+</html>
