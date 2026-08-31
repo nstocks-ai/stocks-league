@@ -11,12 +11,20 @@
   p { color:#c9bfa8; font-family: 'DM Sans', system-ui, sans-serif; line-height: 1.5; }
   ul { list-style: none; padding: 0; margin: 32px 0; }
   li { margin: 0 0 14px; }
-  a { display:block; padding: 18px 22px; border:1px solid #1f3a33; background:#16302a; color:#f4ebd9; text-decoration: none; border-radius: 4px; transition: border-color .2s; font-family: 'DM Sans', system-ui, sans-serif; }
-  a:hover { border-color: #d4a547; }
+  ul a { display:block; padding: 18px 22px; border:1px solid #1f3a33; background:#16302a; color:#f4ebd9; text-decoration: none; border-radius: 4px; transition: border-color .2s; font-family: 'DM Sans', system-ui, sans-serif; }
+  ul a:hover { border-color: #d4a547; }
   .label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color:#d4a547; }
   .title { font-size: 22px; margin-top: 4px; }
   .section-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color:#8a8271; margin: 40px 0 12px; }
   .last { font-family: 'JetBrains Mono', monospace; font-size: 11px; color:#8a8271; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 48px; }
+  table.winners { width:100%; border-collapse: collapse; font-family:'DM Sans', system-ui, sans-serif; background:#16302a; border:1px solid #1f3a33; border-radius:4px; overflow:hidden; margin-bottom: 14px; }
+  table.winners th, table.winners td { padding: 12px 16px; text-align:left; border-bottom:1px solid #1f3a33; font-size:14px; }
+  table.winners tr:last-child td { border-bottom: none; }
+  table.winners th { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:#8a8271; background:#0d1814; font-weight:normal; }
+  table.winners td.w { color:#d4a547; }
+  table.winners td.m { font-family:'JetBrains Mono',monospace; color:#8a8271; }
+  .tracker-note { font-family:'DM Sans', system-ui, sans-serif; font-size: 12px; color:#8a8271; margin-top: 6px; }
+  .tracker-note a { color:#d4a547; text-decoration:none; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,800;1,500&family=DM+Sans&family=JetBrains+Mono&display=swap" rel="stylesheet">
@@ -25,13 +33,26 @@
 <h1>The Stocks <em>League</em></h1>
 <p>The family's running tally of LinkedIn Queens &amp; Tango. Refreshes every morning at 08:00.</p>
 <ul>
-  <li><a href="monthly.html"><span class="label">This month &middot; August</span><div class="title">Monthly Standings &rarr;</div></a></li>
+  <li><a href="monthly.html"><span class="label">This month &middot; September</span><div class="title">Monthly Standings &rarr;</div></a></li>
   <li><a href="overall.html"><span class="label">All-time</span><div class="title">All-Time Standings &rarr;</div></a></li>
 </ul>
+
+<div class="section-label">Month Winners</div>
+<table class="winners">
+  <thead><tr><th>Month</th><th>Winner</th><th>Runner-up</th><th>Margin</th></tr></thead>
+  <tbody>
+  <tr><td>August 2026</td><td class="w"><strong>Tony</strong> (436)</td><td>Nick (419)</td><td class="m">+17</td></tr>
+  <tr><td>July 2026</td><td class="w"><strong>Nick</strong> (433)</td><td>Tony (419)</td><td class="m">+14</td></tr>
+  </tbody>
+</table>
+<p class="tracker-note">Full history: <a href="champions.md">champions.md</a></p>
+
 <div class="section-label">Past months</div>
 <ul>
+  <li><a href="monthly-2026-08.html"><span class="label">August 2026 · Winner: Tony (436)</span><div class="title">August 2026 Final Standings &rarr;</div></a></li>
   <li><a href="monthly-2026-07.html"><span class="label">July 2026 · Winner: Nick (433)</span><div class="title">July 2026 Final Standings &rarr;</div></a></li>
 </ul>
+
 <p class="last">Last updated: <span id="ts"></span></p>
 <script>document.getElementById('ts').textContent = new Date().toISOString().slice(0,16).replace('T',' ') + ' UTC';</script>
 </body>
