@@ -25,11 +25,13 @@
 <h1>The Stocks <em>League</em></h1>
 <p>The family's running tally of LinkedIn Queens &amp; Tango. Refreshes every morning at 08:00.</p>
 <ul>
-  <li><a href="monthly.html"><span class="label">This month &middot; September</span><div class="title">Monthly Standings &rarr;</div></a></li>
+  <li><a href="monthly.html"><span class="label">This month &middot; <span id="mo">November</span></span><div class="title">Monthly Standings &rarr;</div></a></li>
   <li><a href="overall.html"><span class="label">All-time</span><div class="title">All-Time Standings &rarr;</div></a></li>
 </ul>
 <div class="section-label">Past months</div>
 <ul>
+  <li><a href="monthly-2026-10.html"><span class="label">October 2026 · Winner: Tony (419)</span><div class="title">October 2026 Final Standings &rarr;</div></a></li>
+  <li><a href="monthly-2026-09.html"><span class="label">September 2026 · Winner: Tony (399)</span><div class="title">September 2026 Final Standings &rarr;</div></a></li>
   <li><a href="monthly-2026-08.html"><span class="label">August 2026 · Winner: Tony (436)</span><div class="title">August 2026 Final Standings &rarr;</div></a></li>
   <li><a href="monthly-2026-07.html"><span class="label">July 2026 · Winner: Nick (433)</span><div class="title">July 2026 Final Standings &rarr;</div></a></li>
   <li><a href="monthly-2026-06.html"><span class="label">June 2026 · Winner: Tony (481)</span><div class="title">June 2026 Final Standings &rarr;</div></a></li>
@@ -37,6 +39,7 @@
   <li><a href="monthly-2026-04.html"><span class="label">April 2026 · Winner: Tony (529)</span><div class="title">April 2026 Final Standings &rarr;</div></a></li>
 </ul>
 <p class="last">Last updated: <span id="ts"></span></p>
+<script>try{document.getElementById('mo').textContent=new Date(Date.now()-8*3600e3).toLocaleString('en-GB',{month:'long',timeZone:'Europe/Lisbon'});}catch(e){}</script>
 <script>document.getElementById('ts').textContent = new Date().toISOString().slice(0,16).replace('T',' ') + ' UTC';</script>
 </body>
 </html>
